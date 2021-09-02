@@ -1,0 +1,8 @@
+adding an argument to a script
+npm [command] -- --[argument]
+
+The way to name files.
+
+[filename].spec.js : write specific scenario of a test.
+
+[filename].test.js : write tests.
