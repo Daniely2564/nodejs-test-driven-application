@@ -4,6 +4,7 @@ const User = require('../src/models/userModel');
 const sequelize = require('../src/db/sequelize');
 const agent = request(app);
 
+// it === test
 // This is built in jest
 beforeAll(() => {
   return sequelize.sync();
@@ -58,41 +59,35 @@ describe('User Registration', () => {
     expect(savedUser.password).not.toBe('P4ssword');
   });
 
-  it('returns 400 when username is null or empty', async () => {
+  // Instead of testing each one by one, we can use dynamically test our application.
+  // Using a dynamic testing
+  it.each([
+    ['username', 'Username cannot be empty or null'],
+    ['password', 'Password cannot be empty or null'],
+    ['email', 'Email cannot be empty or null'],
+  ])("when %s is null '%s' is received", async (field, expectedMsg) => {
     const res = await postUser({
-      username: null,
-      password: '1234',
-      email: 'random@email.com',
+      ...validUser,
+      [field]: '',
     });
+
     expect(res.status).toBe(400);
+    expect(res.body.message).toBe(expectedMsg);
   });
 
-  it('returns 400 when password is null or empty', async () => {
+  // Another way of dynamically testing
+  it.each`
+    field         | exptMsg
+    ${'username'} | ${'Username cannot be empty or null'}
+    ${'password'} | ${'Password cannot be empty or null'}
+    ${'email'}    | ${'Email cannot be empty or null'}
+  `("when '$field' is empty or null '$exptMsg' is received.", async ({ field, exptMsg }) => {
     const res = await postUser({
-      username: 'abc',
-      password: null,
-      email: 'random@email.com',
+      ...validUser,
+      [field]: '',
     });
+
     expect(res.status).toBe(400);
-  });
-
-  it('returns 400 when email is null or empty', async () => {
-    const res = await postUser({
-      username: 'abc',
-      password: 'ba',
-      email: '',
-    });
-    expect(res.status).toBe(400);
-  });
-
-  it('returns validationError field when validating body fails', async () => {
-    const { body } = await postUser({
-      username: null,
-      email: 'user1@email.com',
-      password: 'password',
-    });
-
-    expect(body).not.toBeUndefined();
-    expect((body || {}).message).not.toBeUndefined();
+    expect(res.body.message).toBe(exptMsg);
   });
 });
